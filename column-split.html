@@ -1,160 +1,98 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Synchronized Two-Column (Vivliostyle-safe)</title>
-<meta name="mobile-web-app-capable" content="yes">
-<style>
-  /* Page config (edit these numbers only) */
-  /* We won't use var() inside @page — Vivliostyle chokes on that. */
-  /* A4 */
-  /* pageWidth=210mm, pageHeight=297mm, margins below */
-  :root{
-    --margin-top-mm: 20;
-    --margin-bottom-mm: 20;
-    --margin-left-mm: 18;
-    --margin-right-mm: 18;
-    --gap-mm: 10;
-  }
-
-  @page {
-    size: A4;
-    margin-top: 20mm;
-    margin-bottom: 20mm;
-    margin-left: 18mm;
-    margin-right: 18mm;
-  }
-
-  body { font: 12pt/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; }
-
-  /* One spread == one page */
-  .spread {
-    display: flex;
-    gap: 0;                       /* we’ll create the gap with padding so heights stay exact */
-    break-after: page;
-    page-break-after: always;
-  }
-  .col {
-    flex: 1 1 0;
-    box-sizing: border-box;
-    overflow: hidden;             /* important during measuring */
-    padding-left: 5mm;            /* half the gap on each side */
-    padding-right: 5mm;
-  }
-
-  /* Optional center rule */
-  .spread::before {
-    content: "";
-    width: 0; border-left: 1px solid #ccc;
-    margin: 0 0;                  /* centered by using equal paddings on columns */
-  }
-
-  .no-split { break-inside: avoid; page-break-inside: avoid; }
-
-  /* Source (hidden) */
-  #src { display: none; }
-
-  .col > * { margin: 0 0 0.6rem; }
-  h2 { margin: 0.8rem 0 0.4rem; }
-</style>
-</head>
-<body>
-
-<!-- Source content -->
-<div id="src">
-  <div id="src-left">
-    <h2>Left: Title</h2>
-    <p>Left side paragraph 1…</p>
-    <p class="no-split"><strong>Keep together:</strong> This block stays on one page.</p>
-    <!-- add lots more blocks -->
-  </div>
-  <div id="src-right">
-    <h2>Right: Title</h2>
-    <p>Right side paragraph 1…</p>
-    <!-- add lots more blocks -->
-  </div>
-</div>
-
-<div id="book"></div>
-
-<script>
-/* mm -> px helper (so we can compute exact content height in pixels) */
-function mmToPx(mm){
-  const probe = document.createElement('div');
-  probe.style.position = 'absolute';
-  probe.style.left = '-9999px';
-  probe.style.top = '0';
-  probe.style.height = mm + 'mm';
-  document.body.appendChild(probe);
-  const px = probe.getBoundingClientRect().height;
-  probe.remove();
-  return px;
-}
-
-(function () {
-  // Page metrics in mm (match @page above!)
-  const PAGE_H_MM = 297;
-  const M_TOP_MM = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin-top-mm') || 20);
-  const M_BOTTOM_MM = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin-bottom-mm') || 20);
-  const GAP_MM = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap-mm') || 10);
-
-  // Compute content height in px (page height minus margins)
-  const contentHeightPx = mmToPx(PAGE_H_MM - M_TOP_MM - M_BOTTOM_MM);
-
-  const srcLeft = document.querySelector('#src-left');
-  const srcRight = document.querySelector('#src-right');
-  const book = document.querySelector('#book');
-
-  const leftQueue = Array.from(srcLeft ? srcLeft.childNodes : []).filter(isRenderableNode);
-  const rightQueue = Array.from(srcRight ? srcRight.childNodes : []).filter(isRenderableNode);
-
-  while (leftQueue.length || rightQueue.length) {
-    const spread = document.createElement('section');
-    spread.className = 'spread';
-
-    const leftCol = document.createElement('div');
-    leftCol.className = 'col left';
-    const rightCol = document.createElement('div');
-    rightCol.className = 'col right';
-
-    // apply exact heights in px
-    leftCol.style.height = contentHeightPx + 'px';
-    rightCol.style.height = contentHeightPx + 'px';
-
-    spread.append(leftCol, rightCol);
-    book.appendChild(spread);
-
-    let leftFull = false, rightFull = false;
-
-    while ((!leftFull && leftQueue.length) || (!rightFull && rightQueue.length)) {
-      if (!leftFull && leftQueue.length) {
-        if (!appendIfFits(leftCol, leftQueue[0], contentHeightPx)) leftFull = true;
-        else leftQueue.shift();
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>テストデータ</title>
+    <style>
+      html {
+        line-height: 2;
+        widows: 1;
+        orphans: 1;
       }
-      if (!rightFull && rightQueue.length) {
-        if (!appendIfFits(rightCol, rightQueue[0], contentHeightPx)) rightFull = true;
-        else rightQueue.shift();
+
+      table {
+        border-collapse: collapse;
+        table-layout: fixed;
+        width: 100%;
       }
-      if ((leftFull && !rightFull) || (rightFull && !leftFull)) break;
-    }
 
-    // Safety: if a single huge node can’t fit, force-place one per side to avoid stalling
-    if (!leftCol.childNodes.length && leftQueue.length) leftCol.appendChild(leftQueue.shift());
-    if (!rightCol.childNodes.length && rightQueue.length) rightCol.appendChild(rightQueue.shift());
-  }
+      th,
+      td {
+        border: 2px solid black;
+        padding: 2px;
+      }
 
-  function isRenderableNode(n) {
-    return n.nodeType === Node.ELEMENT_NODE || (n.nodeType === Node.TEXT_NODE && n.textContent.trim() !== '');
-  }
-  function appendIfFits(col, node, maxH) {
-    const appended = col.appendChild(node);
-    // tiny fudge factor for fractional px
-    if (col.scrollHeight <= maxH + 0.5) return true;
-    col.removeChild(appended);
-    return false;
-  }
-})();
-</script>
+      @page {
+        size: 500px;
+        margin: 100px;
+        outline: 1px dotted silver;
+      }
 
-</body>
+      nav {
+        break-before: page;
+      }
+
+      /* ==== Simple two-column layout ==== */
+      .two-col {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
+      }
+      .col {
+        display: table-cell;
+        vertical-align: top;
+        width: 50%;
+        padding: 0 10px;
+        box-sizing: border-box;
+      }
+
+      /* Avoid breaking certain blocks */
+      .col p,
+      .col div {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    </style>
+  </head>
+  <body>
+    <table>
+      <tbody>
+        <tr>
+          <td>R1C1 あああああああああああああああああああ</td>
+          <td>R1C2</td>
+          <td>R1C3</td>
+        </tr>
+        <tr id="R2">
+          <td>R2C1</td>
+          <td>R2C2</td>
+          <td>R2C3</td>
+        </tr>
+        <tr>
+          <td>R3C1</td>
+          <td>R3C2</td>
+          <td>R3C3 あああああああああああああああああああああああああああ</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <nav>
+      <a href="#R2">go to R2</a>
+    </nav>
+
+    <!-- ==== Two-column section ==== -->
+    <section class="two-col">
+      <div class="col">
+        <h2>左カラム</h2>
+        <p>ここに左側の長いテキストが入ります。ここに左側の長いテキストが入ります。ここに左側の長いテキストが入ります。</p>
+        <p>さらに長い文章…</p>
+        <p>さらに長い文章…</p>
+      </div>
+      <div class="col">
+        <h2>右カラム</h2>
+        <p>こちらは右側の長いテキストです。こちらは右側の長いテキストです。こちらは右側の長いテキストです。</p>
+        <p>さらに右側の文章…</p>
+        <p>さらに右側の文章…</p>
+      </div>
+    </section>
+  </body>
 </html>
