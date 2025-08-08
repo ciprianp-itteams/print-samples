@@ -2,100 +2,112 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Synchronized Two-Column Spreads (Vivliostyle)</title>
+<title>Synchronized Two-Column (Vivliostyle-safe)</title>
+<meta name="mobile-web-app-capable" content="yes">
 <style>
-  /* ===== Page config (edit for your size/margins) ===== */
+  /* Page config (edit these numbers only) */
+  /* We won't use var() inside @page — Vivliostyle chokes on that. */
+  /* A4 */
+  /* pageWidth=210mm, pageHeight=297mm, margins below */
   :root{
-    --page-width: 210mm;   /* A4 */
-    --page-height: 297mm;
-    --margin-top: 20mm;
-    --margin-bottom: 20mm;
-    --margin-left: 18mm;
-    --margin-right: 18mm;
-
-    --content-width: calc(var(--page-width) - var(--margin-left) - var(--margin-right));
-    --content-height: calc(var(--page-height) - var(--margin-top) - var(--margin-bottom));
-    --gap: 10mm;           /* gap between columns */
+    --margin-top-mm: 20;
+    --margin-bottom-mm: 20;
+    --margin-left-mm: 18;
+    --margin-right-mm: 18;
+    --gap-mm: 10;
   }
 
-  /* Vivliostyle / print page box */
   @page {
-    size: var(--page-width) var(--page-height);
-    margin: var(--margin-top) var(--margin-right) var(--margin-bottom) var(--margin-left);
+    size: A4;
+    margin-top: 20mm;
+    margin-bottom: 20mm;
+    margin-left: 18mm;
+    margin-right: 18mm;
   }
 
   body { font: 12pt/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; }
 
-  /* ===== Spreads (one per page) ===== */
+  /* One spread == one page */
   .spread {
     display: flex;
-    gap: var(--gap);
-    width: 100%;
-    break-after: page;           /* one spread = one page */
-    box-sizing: border-box;
+    gap: 0;                       /* we’ll create the gap with padding so heights stay exact */
+    break-after: page;
+    page-break-after: always;
   }
   .col {
     flex: 1 1 0;
     box-sizing: border-box;
-    height: var(--content-height);  /* critical for measuring */
-    overflow: hidden;               /* prevent spill during measure */
+    overflow: hidden;             /* important during measuring */
+    padding-left: 5mm;            /* half the gap on each side */
+    padding-right: 5mm;
   }
 
-  /* Optional visual column rule (prints in browsers; Vivliostyle supports real rules via backgrounds) */
-  .spread { background-image: linear-gradient(90deg, transparent calc(50% - var(--gap)/2 - 0.5px), #ccc calc(50% - var(--gap)/2), #ccc calc(50% - var(--gap)/2 + 1px), transparent calc(50% - var(--gap)/2 + 1px)); background-repeat: no-repeat; background-size: 100% 100%; }
+  /* Optional center rule */
+  .spread::before {
+    content: "";
+    width: 0; border-left: 1px solid #ccc;
+    margin: 0 0;                  /* centered by using equal paddings on columns */
+  }
 
-  /* Keep certain chunks intact */
   .no-split { break-inside: avoid; page-break-inside: avoid; }
 
-  /* ===== Source containers (hidden; the script consumes them) ===== */
+  /* Source (hidden) */
   #src { display: none; }
 
-  /* On-screen demo helpers (not required with Vivliostyle) */
-  .spread { padding: 0; }
   .col > * { margin: 0 0 0.6rem; }
   h2 { margin: 0.8rem 0 0.4rem; }
 </style>
 </head>
 <body>
 
-<!-- ===== Your original content goes here (left/right, any block elements) ===== -->
+<!-- Source content -->
 <div id="src">
   <div id="src-left">
     <h2>Left: Title</h2>
-    <!-- Repeat these to test multiple pages -->
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae…</p>
-    <p class="no-split"><strong>Keep together:</strong> this block won’t split between pages.</p>
-    <!-- … add lots more paragraphs/blocks … -->
+    <p>Left side paragraph 1…</p>
+    <p class="no-split"><strong>Keep together:</strong> This block stays on one page.</p>
+    <!-- add lots more blocks -->
   </div>
-
   <div id="src-right">
     <h2>Right: Title</h2>
-    <p>Completely separate content from the left column. Vivliostyle will keep pages synchronized.</p>
-    <!-- … -->
+    <p>Right side paragraph 1…</p>
+    <!-- add lots more blocks -->
   </div>
 </div>
 
-<!-- The script will generate spreads into this container -->
 <div id="book"></div>
 
 <script>
-/**
- * Synchronized two-column page builder for Vivliostyle.
- * Strategy: create one .spread at a time, append nodes to left/right until either side would overflow.
- * When one side overflows, back out the last append(s), finalize the spread, and start a new one.
- * This guarantees both columns advance in lockstep (same page count), at the cost of possible bottom whitespace.
- */
+/* mm -> px helper (so we can compute exact content height in pixels) */
+function mmToPx(mm){
+  const probe = document.createElement('div');
+  probe.style.position = 'absolute';
+  probe.style.left = '-9999px';
+  probe.style.top = '0';
+  probe.style.height = mm + 'mm';
+  document.body.appendChild(probe);
+  const px = probe.getBoundingClientRect().height;
+  probe.remove();
+  return px;
+}
 
 (function () {
+  // Page metrics in mm (match @page above!)
+  const PAGE_H_MM = 297;
+  const M_TOP_MM = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin-top-mm') || 20);
+  const M_BOTTOM_MM = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin-bottom-mm') || 20);
+  const GAP_MM = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap-mm') || 10);
+
+  // Compute content height in px (page height minus margins)
+  const contentHeightPx = mmToPx(PAGE_H_MM - M_TOP_MM - M_BOTTOM_MM);
+
   const srcLeft = document.querySelector('#src-left');
   const srcRight = document.querySelector('#src-right');
   const book = document.querySelector('#book');
 
-  // Gather source nodes as arrays of block-level chunks (we move whole nodes).
   const leftQueue = Array.from(srcLeft ? srcLeft.childNodes : []).filter(isRenderableNode);
   const rightQueue = Array.from(srcRight ? srcRight.childNodes : []).filter(isRenderableNode);
 
-  // Build spreads until both queues are empty.
   while (leftQueue.length || rightQueue.length) {
     const spread = document.createElement('section');
     spread.className = 'spread';
@@ -105,70 +117,41 @@
     const rightCol = document.createElement('div');
     rightCol.className = 'col right';
 
+    // apply exact heights in px
+    leftCol.style.height = contentHeightPx + 'px';
+    rightCol.style.height = contentHeightPx + 'px';
+
     spread.append(leftCol, rightCol);
     book.appendChild(spread);
 
-    // Target height to not exceed
-    const maxH = leftCol.clientHeight || leftCol.getBoundingClientRect().height;
-
-    // Flags for when a column can't take more on this page
     let leftFull = false, rightFull = false;
 
-    // We try to keep things fair: attempt one node per side in a loop
     while ((!leftFull && leftQueue.length) || (!rightFull && rightQueue.length)) {
-      // Try left
       if (!leftFull && leftQueue.length) {
-        if (!appendIfFits(leftCol, leftQueue[0], maxH)) {
-          leftFull = true;
-        } else {
-          leftQueue.shift();
-        }
+        if (!appendIfFits(leftCol, leftQueue[0], contentHeightPx)) leftFull = true;
+        else leftQueue.shift();
       }
-      // Try right
       if (!rightFull && rightQueue.length) {
-        if (!appendIfFits(rightCol, rightQueue[0], maxH)) {
-          rightFull = true;
-        } else {
-          rightQueue.shift();
-        }
+        if (!appendIfFits(rightCol, rightQueue[0], contentHeightPx)) rightFull = true;
+        else rightQueue.shift();
       }
-
-      // If one column is full and the other could still accept more,
-      // we STOP anyway to keep pages synchronized.
-      if ((leftFull && !rightFull) || (rightFull && !leftFull)) {
-        break;
-      }
+      if ((leftFull && !rightFull) || (rightFull && !leftFull)) break;
     }
 
-    // If nothing fit on an empty page (e.g., a giant image),
-    // force-place one big node per side to avoid infinite loop.
-    if (!leftCol.childNodes.length && leftQueue.length) {
-      leftCol.appendChild(leftQueue.shift());
-    }
-    if (!rightCol.childNodes.length && rightQueue.length) {
-      rightCol.appendChild(rightQueue.shift());
-    }
-
-    // Next loop iteration creates the next page.
+    // Safety: if a single huge node can’t fit, force-place one per side to avoid stalling
+    if (!leftCol.childNodes.length && leftQueue.length) leftCol.appendChild(leftQueue.shift());
+    if (!rightCol.childNodes.length && rightQueue.length) rightCol.appendChild(rightQueue.shift());
   }
 
-  /*** Helpers ***/
   function isRenderableNode(n) {
     return n.nodeType === Node.ELEMENT_NODE || (n.nodeType === Node.TEXT_NODE && n.textContent.trim() !== '');
   }
-
-  // Append a CLONE for measurement, then swap in the original to avoid reflow cost? Simpler: try with the real node and revert if needed.
   function appendIfFits(col, node, maxH) {
-    // Append
     const appended = col.appendChild(node);
-    // Respect "no-split": if the added node contains a .no-split that exceeds height, we still keep it together and overflow is allowed only if page empty.
-    const fits = col.scrollHeight <= maxH + 0.5; // fudge for fractional pixels
-    if (!fits) {
-      // Revert
-      col.removeChild(appended);
-      return false;
-    }
-    return true;
+    // tiny fudge factor for fractional px
+    if (col.scrollHeight <= maxH + 0.5) return true;
+    col.removeChild(appended);
+    return false;
   }
 })();
 </script>
