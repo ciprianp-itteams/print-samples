@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Two Separate Columns for Print</title>
+<style>
+  body {
+    margin: 0;
+    font-family: sans-serif;
+  }
+
+  /* Container for two independent columns */
+  .two-col {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .col {
+    display: table-cell;
+    vertical-align: top;
+    padding: 10px;
+    width: 50%;
+    box-sizing: border-box;
+  }
+
+  /* Prevent splitting important chunks */
+  .col p, .col div, .col pre {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  @media print {
+    @page { size: A4 portrait; margin: 15mm; } /* or portrait if you prefer */
+    body { margin: 0; }
+    .two-col {
+      page-break-inside: avoid; /* keep both columns on same page */
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="two-col">
+  <div class="col" id="column1">
+    <h2>Left Column</h2>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+    <p>Lots of text here…</p>
+    <p>Repeat enough times to span multiple pages.</p>
+  </div>
+
+  <div class="col" id="column2">
+    <h2>Right Column</h2>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <p>Completely separate content from the left column.</p>
+    <p>Also long enough to span multiple pages.</p>
+    <!-- add more content -->
+  </div>
+</div>
+
+</body>
+</html>
